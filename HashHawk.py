@@ -54,21 +54,50 @@ def hashPassword():
     result = sha512(password.encode())
     print(f'SHA512 Hash:   {result.hexdigest()}')
 
+def checkPassword():
+    print('Please enter password to check if leaked:', end='')
+    password = input(" ")
+    
+    try:
+        rockyou = "testingWordlist.txt"
+        with open(rockyou, "r") as rockyou:
+            for word in rockyou:
+                if password.strip() == word.strip():
+                    print("")
+                    print(f"Your password was already involved in a dataleak. Please change your password.")
+                break
+        print("")
+        print("Your password was not found in our leaked password wordlist.")      
+
+    except FileNotFoundError:
+        print(f"Error: The wordlist file '{rockyou}' does not exist.")
+
+    except PermissionError:
+        print(f"Error: Permission denied. Unable to open the file '{rockyou}'.")
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 
 def main():
     # sys.argv[0] = the actual script running  ----  ex: python3 HashHawk.py -hc
-    argument = sys.argv[1]
-    options_map = {
-        "-g": generate,
-        "-h": hashPassword
-    }
+    try:
+        argument = sys.argv[1]
+        options_map = {
+            "-g": generate,
+            "-h": hashPassword,
+            "-ch": checkPassword
+        }
 
-    if argument in options_map:
-        options_map[argument]()
 
-        
+        if argument in options_map:
+            options_map[argument]()
+        else:
+            print("Option not found. Please use the manpage more information. -manpage")
+
+    except IndexError:
+        print("Please enter an option. ex: python3 HashHawk.py -manpage")
 
 if __name__ == "__main__":
     main()
