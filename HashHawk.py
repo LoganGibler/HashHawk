@@ -53,6 +53,7 @@ def hashPassword():
     # sha512
     result = sha512(password.encode())
     print(f'SHA512 Hash:   {result.hexdigest()}')
+    
 
 def checkPassword():
     print('Please enter password to check if leaked:', end='')
@@ -65,7 +66,7 @@ def checkPassword():
                 if password.strip() == word.strip():
                     print("")
                     print(f"Your password was already involved in a dataleak. Please change your password.")
-                break
+                    return
         print("")
         print("Your password was not found in our leaked password wordlist.")      
 
@@ -79,6 +80,82 @@ def checkPassword():
         print(f"An unexpected error occurred: {e}")
 
 
+def hashType():
+    # Map hash types to their corresponding hashlib functions
+    password_hash = input("Enter the password hash to analyze: ")
+    found = False
+    if len(password_hash) == 128:
+        print("Hash type: SHA512")
+        found = True
+    elif len(password_hash) == 96:
+        print("Hash type: SHA384")
+        found = True
+    elif len(password_hash) == 64:
+        print("Hash type: SHA256")
+        found = True
+    elif len(password_hash) == 40:
+        print("Hash type: SHA1")
+        found = True
+    elif len(password_hash) == 32:
+        print("Hash type: MD5")
+        found = True
+    elif len(password_hash) == 56:
+        print("Hash type: SHA224")
+        found = True
+    else:
+        print("Could not detect hash type. :(")
+
+    if found:
+        print("Hash length:", len(password_hash))
+        print("Hash:", password_hash)
+        print("")
+        user_input = input("Would you like to try to crack the hash? (y/n): ")
+        if user_input.lower() == "y":
+            hashCrack(password_hash)
+
+
+def hashCrack(passHash=None):
+    if not passHash:
+        passHash = input("Enter password hash: ")
+
+    hash_length = len(passHash)
+    hash_algorithms = {
+        32: md5,
+        40: sha1,
+        56: sha224,
+        64: sha256,
+        96: sha384,
+        128: sha512
+    }
+
+    if hash_length not in hash_algorithms:
+        print("Could not detect hash type. :(")
+        return
+
+    algorithm = hash_algorithms[hash_length]
+
+    with open("testingWordlist.txt", "r") as wordList:
+        for word in wordList:
+            word = word.strip()
+            guess = algorithm(word.encode("utf-8")).hexdigest()
+
+            if guess == passHash:
+                print("Password is:", word)
+                return
+
+    print("Password not found")
+
+# todo:
+# hashpassword -h DONE
+# generate -g DONE
+# checkpassword -c DONE
+# hashtype -t DONE
+# crackhash -ch DONE
+# -manpage
+# -help
+# gradePassword -gp
+# time2crack -t2c
+
 
 def main():
     # sys.argv[0] = the actual script running  ----  ex: python3 HashHawk.py -hc
@@ -87,7 +164,9 @@ def main():
         options_map = {
             "-g": generate,
             "-h": hashPassword,
-            "-ch": checkPassword
+            "-c": checkPassword,
+            "-t": hashType,
+            "-hc": hashCrack
         }
 
 
